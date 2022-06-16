@@ -1,31 +1,46 @@
-#include "holberton.h"
+#include "shell.h"
 
 /**
- * errors - prints errors based on case
- * @error: error number associated with perror statement
- * Return: void
+ * ctrl_c - detect the CTRL+C signal and print another line with the prompt.
+ * @x: idk.
  */
-void errors(int error)
+void ctrl_c(__attribute__((unused)) int x)
 {
-	switch (error)
+	signal(SIGINT, ctrl_c);
+	write(1, "\n", 1);
+	write(STDOUT_FILENO, "\033[0;36mhsh# \033[0m", 16);
+}
+
+/**
+ * print_error - print specific errors to standard output.
+ * @program_name: argv[0] of main.
+ * @input: command that produces the error.
+ * @error_num: error number - identifies the error type.
+ */
+void print_error(char *program_name, char *input, int error_num)
+{
+	char *str;
+
+	if (error_num == 127) /* command not found */
 	{
-	case 1: /* writes fork error to stderr */
-		write(STDERR_FILENO, ERR_FORK, _strlen(ERR_FORK));
-		perror("Error");
-		break;
-
-	case 2: /* writes execve error to stderr */
-		perror("Error");
-		break;
-
-	case 3: /* writes malloc error to stderr */
-		write(STDERR_FILENO, ERR_MALLOC, _strlen(ERR_MALLOC));
-		break;
-	case 4: /* writes empty path error to stderr */
-		write(STDERR_FILENO, ERR_PATH, _strlen(ERR_PATH));
-		break;
-
-	default:
-		return;
+		write(STDOUT_FILENO, program_name, str_len(program_name));
+		write(STDOUT_FILENO, ": 1: ", 5);
+		write(STDOUT_FILENO, input, str_len(input));
+		write(STDOUT_FILENO, ": not found\n", 12);
+	}
+	if (error_num == 2) /* syntax error*/
+	{
+		str = "sh: 1: Syntax error: \"";
+		write(STDOUT_FILENO, str, str_len(str));
+		write(STDOUT_FILENO, ";", 1);
+		str = "\" unexpected\n";
+		write(STDOUT_FILENO, str, str_len(str));
+	}
+	if (error_num == 3) /* malloc can't allocate memory */
+	{
+		write(STDOUT_FILENO, program_name, str_len(program_name));
+		write(STDOUT_FILENO, ": 1: ", 5);
+		str = "internal error allocating memory\n";
+		write(STDOUT_FILENO, str, str_len(str));
 	}
 }
